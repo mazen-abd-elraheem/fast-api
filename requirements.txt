@@ -15,4 +15,3 @@ pytest>=8.0,<9.0
 httpx>=0.27,<1.0
 alembic>=1.13,<2.0
 psutil>=5.9,<7.0
-flet_geolocator>=0.84.0
