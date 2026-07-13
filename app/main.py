@@ -73,10 +73,10 @@ app = FastAPI(
                 "Connects clients with verified technicians through competitive bidding.",
     version="2.0.0",
     lifespan=lifespan,
-    # Hide API docs in production
-    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
-    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
-    openapi_url="/openapi.json" if settings.ENVIRONMENT != "production" else None,
+    # Show API docs even in production for testing
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 
