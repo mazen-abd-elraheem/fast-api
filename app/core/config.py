@@ -2,11 +2,9 @@
 Sanaie Platform — Config with new settings for refresh tokens, rate limiting, etc.
 """
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
 from functools import lru_cache
 import logging
-import json
-from typing import List, Any
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -32,25 +30,14 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploaded_images"
     MAX_UPLOAD_SIZE_MB: int = 10
 
-    # CORS — accepts either a JSON array or a comma-separated string
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    # CORS — stored as a plain str so pydantic-settings never tries to JSON-parse it.
+    # Set in Railway as a comma-separated string: https://a.com,https://b.com
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
 
-    @field_validator("ALLOWED_ORIGINS", mode="before")
-    @classmethod
-    def parse_allowed_origins(cls, v: Any) -> List[str]:
-        if isinstance(v, list):
-            return v
-        if isinstance(v, str):
-            v = v.strip()
-            # Try JSON array first: ["https://a.com","https://b.com"]
-            if v.startswith("["):
-                try:
-                    return json.loads(v)
-                except json.JSONDecodeError:
-                    pass
-            # Fall back to comma-separated: https://a.com,https://b.com
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        """Parse ALLOWED_ORIGINS into a list (comma-separated or single value)."""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
 
     # Server
     SERVER_HOST: str = "http://localhost:8000"
