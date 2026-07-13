@@ -2,9 +2,11 @@
 Sanaie Platform — Config with new settings for refresh tokens, rate limiting, etc.
 """
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from functools import lru_cache
 import logging
-from typing import List
+import json
+from typing import List, Any
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +32,25 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploaded_images"
     MAX_UPLOAD_SIZE_MB: int = 10
 
-    # CORS
+    # CORS — accepts either a JSON array or a comma-separated string
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v: Any) -> List[str]:
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            v = v.strip()
+            # Try JSON array first: ["https://a.com","https://b.com"]
+            if v.startswith("["):
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    pass
+            # Fall back to comma-separated: https://a.com,https://b.com
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
 
     # Server
     SERVER_HOST: str = "http://localhost:8000"
