@@ -319,6 +319,12 @@ def send_message(
     if current_user.user_id not in (conv.participant_1_id, conv.participant_2_id):
         raise HTTPException(403, "You are not part of this conversation")
 
+    # Prevent messages if the associated job is completed or canceled
+    if conv.job_id and conv.job:
+        from app.enums import JobStatus
+        if conv.job.status in (JobStatus.COMPLETED.value, JobStatus.CANCELED.value):
+            raise HTTPException(403, "Cannot send messages in a completed or canceled job")
+
     if not data.content and not data.attachment_url:
         raise HTTPException(400, "Message must have content or an attachment")
 
@@ -495,7 +501,7 @@ async def upload_chat_attachment(
 
     url = await AssetService.save_upload(file, subfolder="chat")
     if not url:
-        raise HTTPException(400, "File upload failed — unsupported type or too large (max 10MB)")
+        raise HTTPException(400, "File upload failed — unsupported type or too large (max 50MB)")
 
     return {
         "attachment_url": url,

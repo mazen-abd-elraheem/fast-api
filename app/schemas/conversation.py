@@ -2,9 +2,9 @@
 Sanaie Platform — Chat Schemas
 Pydantic models for conversation and message endpoints.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # ── Message Schemas ──
@@ -27,6 +27,12 @@ class MessageResponse(BaseModel):
     attachment_type: Optional[str] = None
     is_read: bool = False
     created_at: datetime
+
+    @field_serializer('created_at')
+    def serialize_dt(self, dt: datetime, _info):
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
 
     model_config = {"from_attributes": True}
 
@@ -57,6 +63,14 @@ class ConversationResponse(BaseModel):
     last_message_at: Optional[datetime] = None
     unread_count: int = 0
     created_at: datetime
+
+    @field_serializer('created_at', 'last_message_at')
+    def serialize_dt(self, dt: Optional[datetime], _info):
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
 
     model_config = {"from_attributes": True}
 

@@ -15,7 +15,7 @@ class AssetService:
     """Local file storage for job images and profile pictures."""
 
     ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "pdf"}
-    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 
     @staticmethod
     def _ensure_dir(path: str):
